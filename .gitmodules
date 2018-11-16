@@ -1,0 +1,3 @@
+[submodule "ygocore/core"]
+	path = ygocore/core
+	url = https://github.com/moecube/ygopro-core
