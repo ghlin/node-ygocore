@@ -1,0 +1,27 @@
+{
+  "name": "ygocore",
+  "version": "0.0.1",
+  "main": "dist/dist/index.js",
+  "types": "dist/ygocore.d.ts",
+  "description": "bindings for ygocore (https://github.com/Fluorohydride/ygopro-core)",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon"
+  },
+  "keywords": [
+    "ygopro",
+    "yu-gi-oh",
+    "ygopro-core",
+    "ygo"
+  ],
+  "author": "ghlin <2012.2.9.ghl@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "tslint": "^5.11.0",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.1.6"
+  },
+  "engines": {
+    "yarn": "use npm instead"
+  }
+}
