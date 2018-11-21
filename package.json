@@ -17,6 +17,7 @@
   "author": "ghlin <2012.2.9.ghl@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "nan": "^2.11.1",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.1.6"
