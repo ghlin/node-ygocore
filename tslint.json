@@ -5,6 +5,8 @@
     ],
     "jsRules": {},
     "rules": {
+        "variable-name": [ true, "allow-snake-case", "allow-leading-underscore" ],
+        "trailing-comma": [ false ],
         "semicolon": [ false ],
         "quotemark": [ true, "single" ],
         "space-before-function-paren": [

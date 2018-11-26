@@ -171,9 +171,6 @@ void               initialize_global_storage()
 {
   set_card_reader(read_card_from_global_storage);
   set_script_reader(read_script_from_global_storage);
-
-  int dummy;
-  read_script("./scripts/expansions/c10000.lua", &dummy);
 }
 
 } // namespace ny

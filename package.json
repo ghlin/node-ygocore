@@ -1,9 +1,9 @@
 {
   "name": "ygocore",
   "version": "0.0.1",
-  "main": "dist/ygocore.js",
-  "types": "dist/ygocore.d.ts",
-  "description": "bindings for ygocore (https://github.com/Fluorohydride/ygopro-core)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "description": "[WIP] bindings for ygocore (https://github.com/Fluorohydride/ygopro-core)",
   "scripts": {
     "build": "tsc",
     "dev": "nodemon"
