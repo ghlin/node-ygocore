@@ -154,9 +154,9 @@ NAN_METHOD(setPlayerInfo)
   GET_PROP_FROM(obj, player, Int32, int32);
   GET_PROP_FROM(obj, lp,     Int32, int32);
   GET_PROP_FROM(obj, start,  Int32, int32);
-  GET_PROP_FROM(obj, hand,   Int32, int32);
+  GET_PROP_FROM(obj, draw,   Int32, int32);
 
-  set_player_info(duel, player, lp, start, hand);
+  set_player_info(duel, player, lp, start, draw);
 }
 
 NAN_METHOD(process)
