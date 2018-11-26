@@ -31,13 +31,16 @@ void               delete_duel(duel_instance_id_t duel_id);
  *
  * see ocgapi's `card_reader`, `set_card_reader`
  */
-void               add_static_card_data(card_data definition);
+void               global_storage_register_card(card_data card);
+
 
 /**
- * set script path.
- *
- * see ocgapi's `script_reader`, `set_script_reader`
+ * load script into global storage.
  */
-void               set_script_directory(const char *path);
+void               global_storage_register_script( const char *script_name
+                                                 , const char *script_content);
+
+
+void               initialize_global_storage();
 
 } // namespace ny
