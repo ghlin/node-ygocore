@@ -1,5 +1,6 @@
-#include "core-wrapper.h"
+#include "wrapper.h"
 #include "core/card.h"
+#include "core/mtrandom.h"
 #include <nan.h>
 #include <cstdio>
 #include <string>
@@ -111,7 +112,24 @@ NAN_METHOD(createDuel)
 {
   CHECK_ARG(0, Int32);
   const auto seed = static_cast<uint32>(arg0.As<v8::Int32>()->Value());
+
   const auto duel = create_duel(seed);
+  const auto id   = register_duel(duel);
+
+  info.GetReturnValue().Set(id);
+}
+
+NAN_METHOD(createYgoproReplayDuel)
+{
+  CHECK_ARG(0, Int32);
+  const auto seed = static_cast<uint32>(arg0.As<v8::Int32>()->Value());
+
+  // use a random seed to generate another random seed.
+  // taken from ygopro's code.
+  mtrandom rnd; rnd.reset(seed);
+  const auto real_seed = rnd.rand();
+
+  const auto duel = create_duel(real_seed);
   const auto id   = register_duel(duel);
 
   info.GetReturnValue().Set(id);
@@ -225,6 +243,7 @@ NAN_MODULE_INIT(Init)
   NAN_EXPORT(target, registerCard);
   NAN_EXPORT(target, registerScript);
   NAN_EXPORT(target, createDuel);
+  NAN_EXPORT(target, createYgoproReplayDuel);
   NAN_EXPORT(target, startDuel);
   NAN_EXPORT(target, endDuel);
   NAN_EXPORT(target, setPlayerInfo);

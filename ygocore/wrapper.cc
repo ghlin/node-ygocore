@@ -1,4 +1,4 @@
-#include "core-wrapper.h"
+#include "wrapper.h"
 #include "core/card.h"
 #include <map>
 #include <string>
@@ -60,7 +60,6 @@ struct Storage
   void   register_card(card_data definition)
   {
     card_data_by_code[definition.code] = definition;
-    std::fprintf(stderr, "register_card: %d\n", definition.code);
   }
 
   void   register_script( const char *script_name
@@ -70,7 +69,6 @@ struct Storage
     script_content_by_name[script_name] =
       std::vector<byte>( script_content
                        , script_content + len);
-    std::fprintf(stderr, "register_script: %s\n", script_name);
   }
 };
 
@@ -153,17 +151,21 @@ byte *read_script_from_global_storage( const char *script_name
     }
   }
 
-  std::fprintf( stderr
-              , "read_script: script %s not found.\n"
-              , script_name);
-  for (const auto *trial_p = trials; trial_p != trial; ++trial_p) {
+  // c0.lua is optional, no need to borther user.
+  if (std::strcmp(trial[-1], "c0.lua") != 0) {
     std::fprintf( stderr
-                , "               - tried: %s\n"
-                , *trial_p);
+                , "read_script: script %s not found.\n"
+                , script_name);
+    for (const auto *trial_p = trials; trial_p != trial; ++trial_p) {
+      std::fprintf( stderr
+                  , "               - tried: %s\n"
+                  , *trial_p);
+    }
   }
 
   *script_len = 0;
   static byte dummy_buffer[2] = { 0, 0 };
+
   return dummy_buffer;
 }
 

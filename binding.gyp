@@ -9,7 +9,7 @@
       ],
       "sources": [
         "ygocore/main.cc",
-        "ygocore/core-wrapper.cc",
+        "ygocore/wrapper.cc",
         "ygocore/lua/ltm.cc",
         "ygocore/lua/lbaselib.cc",
         "ygocore/lua/lcode.cc",
