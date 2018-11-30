@@ -4,7 +4,9 @@
 
 # Install
 
-TODO: publish to npm
+```
+npm install ygocore
+```
 
 # How to use?
 
