@@ -3,10 +3,13 @@
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ghlin/node-ygocore"
+  },
   "description": "[WIP] bindings for ygocore (https://github.com/Fluorohydride/ygopro-core)",
   "scripts": {
-    "build": "tsc",
-    "dev": "nodemon"
+    "build": "tsc"
   },
   "keywords": [
     "ygopro",
@@ -24,8 +27,5 @@
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.1.6"
-  },
-  "engines": {
-    "yarn": "use npm instead"
   }
 }
