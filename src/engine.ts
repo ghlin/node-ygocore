@@ -70,13 +70,6 @@ export interface ProcessResult {
 
 export interface OcgcoreRaw {
   /**
-   * initialize engine.
-   *
-   * must be called before any calls below.
-   */
-  initializeEngine(): void;
-
-  /**
    * register static card data to engine.
    * @param card card data to register
    */
@@ -150,10 +143,6 @@ const core = require('../build/Release/ocgcore') as OcgcoreRaw;
 
 export class OcgEngine {
   constructor(private readonly core: any) { }
-
-  initializeEngine(): void {
-    return this.core.initializeEngine();
-  }
 
   registerScript(name: string, content: string): void {
     return this.core.registerScript(name, content);

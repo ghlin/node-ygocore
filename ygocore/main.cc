@@ -12,21 +12,6 @@ const char *to_c_string(const v8::String::Utf8Value &value)
   return *value;
 }
 
-NAN_METHOD(setScriptDirectory)
-{
-  const auto arg0 = info[0];
-  if (arg0.IsEmpty() || !arg0->IsString()) {
-    return Nan::ThrowTypeError("String expected");
-  }
-
-  v8::String::Utf8Value value(arg0);
-  const auto path = to_c_string(value);
-
-  if (!path) {
-    return Nan::ThrowError("Internal error: Cannot convert arg0 to c string");
-  }
-}
-
 #define CHECK_ARG(n, type)                                                    \
   const auto arg##n = info[n];                                                \
   do { if (!arg##n->Is##type()) {                                             \
@@ -80,12 +65,26 @@ NAN_METHOD(registerCard)
   GET_PROP(rscale,      uint32);
   GET_PROP(link_marker, uint32);
 
-  // setcode is 64-bit, doesn't fit in a safe-integer
-  GET_PROP(setcode_high, uint32);
-  GET_PROP(setcode_low,  uint32);
-#undef GET_PROP
+  uint64 setcode;
 
-  const auto setcode = (static_cast<uint64>(setcode_high) << 32) + setcode_low;
+  // setcode is 64-bit, doesn't fit in a safe-integer
+  {
+    const auto setcode_object = card->Get(Nan::New("setcode").ToLocalChecked());
+    if (setcode_object.IsEmpty() || !setcode_object->IsString()) {
+      // setcode is provided as two 32-bits integers
+      GET_PROP(setcode_high, uint32);
+      GET_PROP(setcode_low,  uint32);
+
+      setcode = (static_cast<uint64>(setcode_high) << 32) + setcode_low;
+    } else {
+      // setcode is provided as a string
+      const auto setcode_value = setcode_object.As<v8::String>();
+      v8::String::Utf8Value hold_value(setcode_value);
+
+      setcode = std::strtoll(to_c_string(hold_value), nullptr, 16);
+    }
+  }
+#undef GET_PROP
 
   global_storage_register_card(
     { code
@@ -101,11 +100,6 @@ NAN_METHOD(registerCard)
     , rscale
     , link_marker
     });
-}
-
-NAN_METHOD(initializeEngine)
-{
-  initialize_global_storage();
 }
 
 NAN_METHOD(createDuel)
@@ -239,7 +233,6 @@ NAN_METHOD(setResponse)
 
 NAN_MODULE_INIT(Init)
 {
-  NAN_EXPORT(target, initializeEngine);
   NAN_EXPORT(target, registerCard);
   NAN_EXPORT(target, registerScript);
   NAN_EXPORT(target, createDuel);
@@ -250,6 +243,9 @@ NAN_MODULE_INIT(Init)
   NAN_EXPORT(target, process);
   NAN_EXPORT(target, newCard);
   NAN_EXPORT(target, setResponse);
+
+  // setup script reader & card reader
+  initialize_global_storage();
 }
 
 NODE_MODULE(ocgcore, Init)

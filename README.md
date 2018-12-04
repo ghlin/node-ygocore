@@ -27,17 +27,14 @@ for (const [ name, content ] of scripts) {
   engine.registerScript(name, content);
 }
 
-// 3. initialize the engine
-engine.initializeEngine();
-
-// 4. create a duel instance
+// 3. create a duel instance
 const duel = engine.createDuel(0 /* any random seed */);
 
-// 5. where are the duelists?
+// 4. where are the duelists?
 engine.setPlayerInfo(duel, { player: 0, lp: 8000, start: 5, draw: 1 });
 engine.setPlayerInfo(duel, { player: 1, lp: 8000, start: 5, draw: 1 });
 
-// 6. and setup their decks
+// 5. and setup their decks
 for (const playerId of [0, 1]) {
   for (const code of players[playerId].deck.main) {
     engine.newStartupCardMain(duel, playerId, code);
@@ -48,10 +45,10 @@ for (const playerId of [0, 1]) {
   }
 }
 
-// 7. start the duel
+// 6. start the duel
 engine.startDuel(duel, options);
 
-// 8. process each move
+// 7. process each move
 while (true) {
   const { messages } = engine.process(duel);
   for (const m of messages) {
@@ -72,7 +69,7 @@ while (true) {
   }
 }
 
-// 9. cleanup
+// 8. cleanup
 engine.endDuel(duel);
 
 ```
