@@ -1,0 +1,7 @@
+/src
+/build
+/.clang_complete
+/.lvimrc
+.git
+/.vscode
+/.gitmodules

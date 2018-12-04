@@ -9,7 +9,8 @@
   },
   "description": "[WIP] bindings for ygocore (https://github.com/Fluorohydride/ygopro-core)",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "tsc"
   },
   "keywords": [
     "ygopro",
