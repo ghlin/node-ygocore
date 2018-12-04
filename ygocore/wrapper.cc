@@ -34,7 +34,7 @@ struct Storage
   }
 
 
-  ptr    query_duel(duel_instance_id_t duel_id) const
+  ptr query_duel(duel_instance_id_t duel_id) const
   {
     const auto found = duel_by_id.find(duel_id);
     if (found == duel_by_id.cend())
@@ -51,19 +51,19 @@ struct Storage
     return id;
   }
 
-  void   delete_duel(duel_instance_id_t id)
+  void delete_duel(duel_instance_id_t id)
   {
     duel_by_id.erase(id);
     collect_id(id);
   }
 
-  void   register_card(card_data definition)
+  void register_card(card_data definition)
   {
     card_data_by_code[definition.code] = definition;
   }
 
-  void   register_script( const char *script_name
-                        , const char *script_content)
+  void register_script( const char *script_name
+                      , const char *script_content)
   {
     const auto len = std::strlen(script_content);
     script_content_by_name[script_name] =
@@ -79,22 +79,22 @@ duel_instance_id_t register_duel(ptr duel_ptr)
   return global_storage.register_duel(duel_ptr);
 }
 
-ptr                query_duel(duel_instance_id_t id)
+ptr query_duel(duel_instance_id_t id)
 {
   return global_storage.query_duel(id);
 }
 
-void               delete_duel(duel_instance_id_t id)
+void delete_duel(duel_instance_id_t id)
 {
   global_storage.delete_duel(id);
 }
 
-void               global_storage_register_card(card_data definition)
+void global_storage_register_card(card_data definition)
 {
   global_storage.register_card(definition);
 }
 
-void               global_storage_register_script( const char *script_name
+void global_storage_register_script( const char *script_name
                                                  , const char *script_content)
 {
   global_storage.register_script(script_name, script_content);
@@ -169,7 +169,7 @@ byte *read_script_from_global_storage( const char *script_name
   return dummy_buffer;
 }
 
-void               initialize_global_storage()
+void initialize_global_storage()
 {
   set_card_reader(read_card_from_global_storage);
   set_script_reader(read_script_from_global_storage);

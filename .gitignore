@@ -74,3 +74,4 @@ typings/
 /build
 /.clang_complete
 /.lvimrc
+/dist
