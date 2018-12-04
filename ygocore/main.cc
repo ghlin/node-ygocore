@@ -224,6 +224,12 @@ NAN_METHOD(setResponse)
   const auto response_data    = response_content.Data();
   const auto response_length  = response_content.ByteLength();
 
+  if (response_length > 64) {
+    // non-sense response
+    const char *error_message = "response buffer is too large (> 64 bytes)";
+    return Nan::ThrowError(Nan::New(error_message).ToLocalChecked());
+  }
+
   // ygopro-core always reads 64-bytes data at once.
   byte response_buffer[64];
   std::memcpy(response_buffer, response_data, response_length);
