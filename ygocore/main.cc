@@ -63,26 +63,32 @@ NAN_METHOD(registerCard)
   GET_PROP(defense,     int32);
   GET_PROP(lscale,      uint32);
   GET_PROP(rscale,      uint32);
-  GET_PROP(link_marker, uint32);
+  GET_PROP(linkMarker,  uint32);
 
   uint64 setcode;
 
   // setcode is 64-bit, doesn't fit in a safe-integer
-  {
-    const auto setcode_object = card->Get(Nan::New("setcode").ToLocalChecked());
-    if (setcode_object.IsEmpty() || !setcode_object->IsString()) {
-      // setcode is provided as two 32-bits integers
-      GET_PROP(setcode_high, uint32);
-      GET_PROP(setcode_low,  uint32);
+  const auto setcode_property = card->Get(Nan::New("setcode").ToLocalChecked());
+  if (setcode_property.IsEmpty()) {
+    return Nan::ThrowTypeError("Missing property 'setcode'");
+  }
 
-      setcode = (static_cast<uint64>(setcode_high) << 32) + setcode_low;
-    } else {
-      // setcode is provided as a string
-      const auto setcode_value = setcode_object.As<v8::String>();
-      v8::String::Utf8Value hold_value(setcode_value);
+  if (setcode_property->IsString()) {
+    // setcode is provided as a string
+    const auto setcode_value = setcode_property.As<v8::String>();
+    v8::String::Utf8Value hold_value(setcode_value);
 
-      setcode = std::strtoll(to_c_string(hold_value), nullptr, 16);
-    }
+    setcode = std::strtoll(to_c_string(hold_value), nullptr, 10);
+  } else if (setcode_property->IsObject()) {
+    // setcode is provided as two 32-bits integers
+    const auto setcode_object = setcode_property.As<v8::Object>();
+
+    GET_PROP_FROM(setcode_object, setcode_high, Int32, uint32);
+    GET_PROP_FROM(setcode_object, setcode_low,  Int32, uint32);
+
+    setcode = (static_cast<uint64>(setcode_high) << 32) + setcode_low;
+  } else {
+    return Nan::ThrowTypeError("Property 'setcode' should be either a string or { low: number, high: number }");
   }
 #undef GET_PROP
 
@@ -98,7 +104,7 @@ NAN_METHOD(registerCard)
     , defense
     , lscale
     , rscale
-    , link_marker
+    , linkMarker
     });
 }
 
@@ -193,6 +199,61 @@ NAN_METHOD(process)
   info.GetReturnValue().Set(result_obj);
 }
 
+NAN_METHOD(queryCard)
+{
+  CHECK_DUEL(0);
+  CHECK_ARG(1, Object);
+
+  const auto queryCardOptions = arg1.As<v8::Object>();
+
+  GET_PROP_FROM(queryCardOptions, player,   Int32, uint32);
+  GET_PROP_FROM(queryCardOptions, location, Int32, uint32);
+  GET_PROP_FROM(queryCardOptions, queryFlags,    Int32, uint32);
+  GET_PROP_FROM(queryCardOptions, useCache, Boolean, bool);
+  GET_PROP_FROM(queryCardOptions, sequence, Int32, uint32);
+
+  byte query_buffer[0x4000];
+  auto length = query_card(duel, player, location, sequence, queryFlags, query_buffer, useCache);
+
+  info.GetReturnValue().Set(Nan::CopyBuffer((char *)query_buffer, length).ToLocalChecked());
+}
+
+NAN_METHOD(queryFieldCard)
+{
+  CHECK_DUEL(0);
+  CHECK_ARG(1, Object);
+
+  const auto queryOptions = arg1.As<v8::Object>();
+
+  GET_PROP_FROM(queryOptions, player,   Int32, uint32);
+  GET_PROP_FROM(queryOptions, location, Int32, uint32);
+  GET_PROP_FROM(queryOptions, queryFlags,    Int32, uint32);
+  GET_PROP_FROM(queryOptions, useCache, Boolean, bool);
+
+  byte query_buffer[0x4000];
+  auto length = query_field_card(duel, player, location, queryFlags, query_buffer, useCache);
+
+  info.GetReturnValue().Set(Nan::CopyBuffer((char *)query_buffer, length).ToLocalChecked());
+}
+
+NAN_METHOD(queryFieldCount)
+{
+  CHECK_DUEL(0);
+  CHECK_INT(1, player, uint32);
+  CHECK_INT(2, location, uint32);
+
+  auto count = query_field_count(duel, player, location);
+
+  info.GetReturnValue().Set(Nan::New(count));
+}
+
+NAN_METHOD(queryFieldInfo)
+{
+  CHECK_DUEL(0);
+
+  return Nan::ThrowError("not impl!");
+}
+
 NAN_METHOD(newCard)
 {
   CHECK_DUEL(0);
@@ -249,6 +310,10 @@ NAN_MODULE_INIT(Init)
   NAN_EXPORT(target, process);
   NAN_EXPORT(target, newCard);
   NAN_EXPORT(target, setResponse);
+  NAN_EXPORT(target, queryCard);
+  NAN_EXPORT(target, queryFieldCard);
+  NAN_EXPORT(target, queryFieldCount);
+  NAN_EXPORT(target, queryFieldInfo);
 
   // setup script reader & card reader
   initialize_global_storage();
