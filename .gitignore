@@ -71,7 +71,9 @@ typings/
 
 # Serverless directories
 .serverless
+
 /build
 /.clang_complete
 /.lvimrc
 /dist
+/.vscode
