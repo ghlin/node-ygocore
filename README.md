@@ -11,4 +11,4 @@ npm install ygocore
 
 # How to use?
 
-TODO
+TODO ([see also](https://www.npmjs.com/package/ygocore-interface))
