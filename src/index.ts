@@ -1,3 +1,11 @@
 import { OCGEngine } from 'ygocore-interface';
 
-export const engine = require('../build/Release/ocgcore') as OCGEngine<number>;
+const raw = require('../build/Release/ocgcore');
+
+function engineSetResponse(duel: number, response: Buffer) {
+  raw.setResponse(duel, response.buffer.slice(
+    response.byteOffset, response.byteOffset + response.byteLength
+  ));
+}
+
+export const engine = { ...raw, setResponse: engineSetResponse } as OCGEngine<number>;

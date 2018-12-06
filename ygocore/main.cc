@@ -83,10 +83,10 @@ NAN_METHOD(registerCard)
     // setcode is provided as two 32-bits integers
     const auto setcode_object = setcode_property.As<v8::Object>();
 
-    GET_PROP_FROM(setcode_object, setcode_high, Int32, uint32);
-    GET_PROP_FROM(setcode_object, setcode_low,  Int32, uint32);
+    GET_PROP_FROM(setcode_object, high, Int32, uint32);
+    GET_PROP_FROM(setcode_object, low,  Int32, uint32);
 
-    setcode = (static_cast<uint64>(setcode_high) << 32) + setcode_low;
+    setcode = (static_cast<uint64>(high) << 32) + low;
   } else {
     return Nan::ThrowTypeError("Property 'setcode' should be either a string or { low: number, high: number }");
   }
@@ -193,7 +193,7 @@ NAN_METHOD(process)
 
   result_obj->Set( Nan::New("flags").ToLocalChecked()
                  , Nan::New(process_flags));
-  result_obj->Set( Nan::New("messages").ToLocalChecked()
+  result_obj->Set( Nan::New("data").ToLocalChecked()
                  , buffer_obj);
 
   info.GetReturnValue().Set(result_obj);
