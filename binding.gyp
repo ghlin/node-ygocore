@@ -2,10 +2,13 @@
   "targets": [
     {
       "target_name": "ocgcore",
-      "include_dirs": [ "<!(node -e \"require('nan')\")" ],
-      "cflags": [
-        "-DLUA_USE_LONGJMP=1",
-        "-DLUA_USE_POSIX=1"
+      "include_dirs": [
+        "<!(node -e \"require('nan')\")",
+        "ygocore/lua"
+      ],
+      "defines": [
+        "LUA_USE_LONGJMP=1",
+        "LUA_USE_POSIX=1"
       ],
       "sources": [
         "ygocore/main.cc",
