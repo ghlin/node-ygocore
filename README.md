@@ -16,7 +16,7 @@ To use this package, you need to know how `ocgcore` works.
 
 > **Note**
 >
-> I'm not the author of `ygopro`, if my understandings on `ocgcore`'s
+> I'm not the author/contributer of `ygopro`, if my understandings on `ocgcore`'s
 > API are not correct, please fire me an issue. Thanks!
 
 
