@@ -1,9 +1,8 @@
 # node-ygocore
 
+**WIP** node bindings for [ygopro-core](https://github.com/moecube/ygopro-core) (the OCG script engine)
+
 **NOTE** This is not Ygopro the game!!!
-
-**[WIP]** node bindings for [ygopro-core](https://github.com/moecube/ygopro-core) (the OCG script engine)
-
 
 # Install
 
@@ -22,7 +21,7 @@ To use this package, you need to know how `ocgcore` works.
 
 
 ``` typescript
-import { engine } from 'ygopro'
+import { engine } from 'ygopro';
 ```
 
 > this project is writen in Typescript, each method
@@ -79,7 +78,7 @@ const { flags, data } = engine.process(duel);
 > ocgapi: `set_responsei()`, `set_responseb()`
 
 ``` typescript
-engine.setResponse(duel, player, response);
+engine.setResponse(duel, response);
 ```
 
 ### End the duel
