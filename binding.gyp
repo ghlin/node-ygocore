@@ -6,9 +6,10 @@
         "<!(node -e \"require('nan')\")",
         "ygocore/lua"
       ],
-      "defines": [
-        "LUA_USE_LONGJMP=1",
-        "LUA_USE_POSIX=1"
+      "defines": [ "LUA_USE_LONGJMP=1" ],
+      "conditions": [
+        ["OS=='linux'", { "defines": [ "LUA_USE_POSIX=1" ] } ],
+        ["OS=='mac'", { "defines": [ "LUA_USE_POSIX=1" ] } ]
       ],
       "sources": [
         "ygocore/main.cc",
