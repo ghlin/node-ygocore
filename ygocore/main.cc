@@ -108,10 +108,27 @@ NAN_METHOD(registerCard)
     });
 }
 
+uint32 to_uint32(v8::Handle<v8::Value> val, uint32 default_value)
+{
+  if (val->IsInt32()) {
+    return static_cast<uint32>(val.As<v8::Int32>()->Value());
+  }
+  if (val->IsNumber() || val->IsString()) {
+    auto string_resp = val->ToString();
+    v8::String::Utf8Value hold(string_resp);
+    auto string_resp_p = to_c_string(hold);
+    return static_cast<uint32>(std::stoul(string_resp_p));
+  }
+  return default_value;
+}
+
 NAN_METHOD(createDuel)
 {
-  CHECK_ARG(0, Int32);
-  const auto seed = static_cast<uint32>(arg0.As<v8::Int32>()->Value());
+  const auto seed = to_uint32(info[0], UINT32_MAX);
+
+  if (seed == UINT32_MAX) {
+    return Nan::ThrowTypeError("createDuel: argument#0, number expected");
+  }
 
   const auto duel = create_duel(seed);
   const auto id   = register_duel(duel);
