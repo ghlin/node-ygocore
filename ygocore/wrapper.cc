@@ -132,11 +132,6 @@ static
 byte *read_script_from_global_storage( const char *script_name
                                      , int        *script_len)
 {
-  const char *trials[6];
-  const char **trial = trials;
-
-  *trial++ = script_name;
-
   if (auto found = try_script(script_name, script_len)) {
     return found;
   }
@@ -145,21 +140,8 @@ byte *read_script_from_global_storage( const char *script_name
     if (probe_script_name[0] != '/')
       continue;
 
-    *trial++ = probe_script_name + 1;
     if (auto found = try_script(probe_script_name + 1, script_len)) {
       return found;
-    }
-  }
-
-  // c0.lua is optional, no need to borther user.
-  if (std::strcmp(trial[-1], "c0.lua") != 0) {
-    std::fprintf( stderr
-                , "read_script: script %s not found.\n"
-                , script_name);
-    for (const auto *trial_p = trials; trial_p != trial; ++trial_p) {
-      std::fprintf( stderr
-                  , "               - tried: %s\n"
-                  , *trial_p);
     }
   }
 

@@ -7,9 +7,27 @@
 
 namespace ny {
 
+static inline
 const char *to_c_string(const v8::String::Utf8Value &value)
 {
   return *value;
+}
+
+template <typename I>
+static inline
+I to_integer(v8::Handle<v8::Value> val, I default_value)
+{
+  if (val->IsInt32()) {
+    return static_cast<I>(val->Int32Value());
+  }
+  if (val->IsUint32()) {
+    return static_cast<I>(val->Uint32Value());
+  }
+  if (val->IsNumber()) {
+    return static_cast<I>(val->IntegerValue());
+  }
+
+  return default_value;
 }
 
 #define CHECK_ARG(n, type)                                                    \
@@ -18,6 +36,36 @@ const char *to_c_string(const v8::String::Utf8Value &value)
     char buff[200];                                                           \
     std::sprintf(buff, "%s: argument #%d, %s expected.", __func__, n, #type); \
     return Nan::ThrowTypeError(buff);                                         \
+  } } while (false)
+
+#define GET_PROP_OF_TYPE(obj, field, v8Type)                             \
+  const auto ref_##field = obj->Get(Nan::New(#field).ToLocalChecked());  \
+  if (ref_##field.IsEmpty() || !ref_##field->Is##v8Type()) {             \
+    return Nan::ThrowTypeError(                                          \
+      "missing property "                                                \
+      "'" #field                                                         \
+      "', or type mismatch ("                                            \
+      "" #v8Type                                                         \
+      " expected)");                                                     \
+  }
+
+#define GET_INTEGER_PROP(obj, field, type) \
+  GET_PROP_OF_TYPE(obj, field, Number)     \
+  const auto field = to_integer<type>(ref_##field, 0)
+
+#define GET_PROP(obj, field, v8Type)                          \
+  GET_PROP_OF_TYPE(obj, field, v8Type)                        \
+  const auto field = ref_##field->v8Type##Value()
+
+#define CHECK_INT(n, name, type)                        \
+  CHECK_ARG(n, Number);                                 \
+  const auto name = to_integer<type>(info[n], 0)        \
+
+#define CHECK_DUEL(n)                           \
+  CHECK_INT(n, duel_id, duel_instance_id_t);    \
+  const auto duel = query_duel(duel_id);        \
+  do { if (!duel) {                             \
+    return Nan::ThrowError("Invalid duel id");  \
   } } while (false)
 
 NAN_METHOD(registerScript)
@@ -34,36 +82,23 @@ NAN_METHOD(registerScript)
   global_storage_register_script(script_name, script_content);
 }
 
-#define GET_PROP_FROM(obj, field, v8Type, type)                          \
-  const auto ref_##field = obj->Get(Nan::New(#field).ToLocalChecked());  \
-  if (ref_##field.IsEmpty() || !ref_##field->Is##v8Type()) {             \
-    return Nan::ThrowTypeError(                                          \
-      "registerCard: Missing property "                                  \
-      "" #field                                                          \
-      ", or type mismatch ("                                             \
-      "" #v8Type                                                         \
-      " expected)");                                                     \
-  }                                                                      \
-  const auto _value_##field = ref_##field.As<v8::v8Type>();              \
-  const auto field = static_cast<type>(_value_##field->Value())
 
 NAN_METHOD(registerCard)
 {
   CHECK_ARG(0, Object);
   const auto card = arg0.As<v8::Object>();
 
-#define GET_PROP(key, type) GET_PROP_FROM(card, key, Int32, type)
-  GET_PROP(code,        uint32);
-  GET_PROP(alias,       uint32);
-  GET_PROP(type,        uint32);
-  GET_PROP(level,       uint32);
-  GET_PROP(attribute,   uint32);
-  GET_PROP(race,        uint32);
-  GET_PROP(attack,      int32);
-  GET_PROP(defense,     int32);
-  GET_PROP(lscale,      uint32);
-  GET_PROP(rscale,      uint32);
-  GET_PROP(linkMarker,  uint32);
+  GET_INTEGER_PROP(card, code,       uint32);
+  GET_INTEGER_PROP(card, alias,      uint32);
+  GET_INTEGER_PROP(card, type,       uint32);
+  GET_INTEGER_PROP(card, level,      uint32);
+  GET_INTEGER_PROP(card, attribute,  uint32);
+  GET_INTEGER_PROP(card, race,       uint32);
+  GET_INTEGER_PROP(card, attack,     int32);
+  GET_INTEGER_PROP(card, defense,    int32);
+  GET_INTEGER_PROP(card, lscale,     uint32);
+  GET_INTEGER_PROP(card, rscale,     uint32);
+  GET_INTEGER_PROP(card, linkMarker, uint32);
 
   uint64 setcode;
 
@@ -83,14 +118,13 @@ NAN_METHOD(registerCard)
     // setcode is provided as two 32-bits integers
     const auto setcode_object = setcode_property.As<v8::Object>();
 
-    GET_PROP_FROM(setcode_object, high, Int32, uint32);
-    GET_PROP_FROM(setcode_object, low,  Int32, uint32);
+    GET_INTEGER_PROP(setcode_object, high, uint32);
+    GET_INTEGER_PROP(setcode_object, low,  uint32);
 
     setcode = (static_cast<uint64>(high) << 32) + low;
   } else {
     return Nan::ThrowTypeError("Property 'setcode' should be either a string or { low: number, high: number }");
   }
-#undef GET_PROP
 
   global_storage_register_card(
     { code
@@ -108,27 +142,9 @@ NAN_METHOD(registerCard)
     });
 }
 
-uint32 to_uint32(v8::Handle<v8::Value> val, uint32 default_value)
-{
-  if (val->IsInt32()) {
-    return static_cast<uint32>(val.As<v8::Int32>()->Value());
-  }
-  if (val->IsNumber() || val->IsString()) {
-    auto string_resp = val->ToString();
-    v8::String::Utf8Value hold(string_resp);
-    auto string_resp_p = to_c_string(hold);
-    return static_cast<uint32>(std::stoul(string_resp_p));
-  }
-  return default_value;
-}
-
 NAN_METHOD(createDuel)
 {
-  const auto seed = to_uint32(info[0], UINT32_MAX);
-
-  if (seed == UINT32_MAX) {
-    return Nan::ThrowTypeError("createDuel: argument#0, number expected");
-  }
+  CHECK_INT(0, seed, uint32);
 
   const auto duel = create_duel(seed);
   const auto id   = register_duel(duel);
@@ -138,8 +154,7 @@ NAN_METHOD(createDuel)
 
 NAN_METHOD(createYgoproReplayDuel)
 {
-  CHECK_ARG(0, Int32);
-  const auto seed = static_cast<uint32>(arg0.As<v8::Int32>()->Value());
+  CHECK_INT(0, seed, uint32);
 
   // use a random seed to generate another random seed.
   // taken from ygopro's code.
@@ -151,18 +166,6 @@ NAN_METHOD(createYgoproReplayDuel)
 
   info.GetReturnValue().Set(id);
 }
-
-#define CHECK_INT(n, name, type)                        \
-  CHECK_ARG(n, Int32);                                  \
-  const auto name =                                     \
-    static_cast<type>(arg##n.As<v8::Int32>()->Value())
-
-#define CHECK_DUEL(n)                           \
-  CHECK_INT(n, duel_id, duel_instance_id_t);    \
-  const auto duel = query_duel(duel_id);        \
-  do { if (!duel) {                             \
-    return Nan::ThrowError("Invalid duel id");  \
-  } } while (false)
 
 NAN_METHOD(startDuel)
 {
@@ -186,10 +189,10 @@ NAN_METHOD(setPlayerInfo)
 
   const auto obj = arg1.As<v8::Object>();
 
-  GET_PROP_FROM(obj, player, Int32, int32);
-  GET_PROP_FROM(obj, lp,     Int32, int32);
-  GET_PROP_FROM(obj, start,  Int32, int32);
-  GET_PROP_FROM(obj, draw,   Int32, int32);
+  GET_INTEGER_PROP(obj, player, int32);
+  GET_INTEGER_PROP(obj, lp,     int32);
+  GET_INTEGER_PROP(obj, start,  int32);
+  GET_INTEGER_PROP(obj, draw,   int32);
 
   set_player_info(duel, player, lp, start, draw);
 }
@@ -223,11 +226,11 @@ NAN_METHOD(queryCard)
 
   const auto queryCardOptions = arg1.As<v8::Object>();
 
-  GET_PROP_FROM(queryCardOptions, player,   Int32, uint32);
-  GET_PROP_FROM(queryCardOptions, location, Int32, uint32);
-  GET_PROP_FROM(queryCardOptions, queryFlags,    Int32, uint32);
-  GET_PROP_FROM(queryCardOptions, useCache, Boolean, bool);
-  GET_PROP_FROM(queryCardOptions, sequence, Int32, uint32);
+  GET_INTEGER_PROP(queryCardOptions, player,     uint32);
+  GET_INTEGER_PROP(queryCardOptions, location,   uint32);
+  GET_INTEGER_PROP(queryCardOptions, queryFlags, uint32);
+  GET_INTEGER_PROP(queryCardOptions, sequence,   uint32);
+  GET_PROP(queryCardOptions, useCache, Boolean);
 
   byte query_buffer[0x4000];
   auto length = query_card(duel, player, location, sequence, queryFlags, query_buffer, useCache);
@@ -242,10 +245,10 @@ NAN_METHOD(queryFieldCard)
 
   const auto queryOptions = arg1.As<v8::Object>();
 
-  GET_PROP_FROM(queryOptions, player,   Int32, uint32);
-  GET_PROP_FROM(queryOptions, location, Int32, uint32);
-  GET_PROP_FROM(queryOptions, queryFlags,    Int32, uint32);
-  GET_PROP_FROM(queryOptions, useCache, Boolean, bool);
+  GET_INTEGER_PROP(queryOptions, player,     uint32);
+  GET_INTEGER_PROP(queryOptions, location,   uint32);
+  GET_INTEGER_PROP(queryOptions, queryFlags, uint32);
+  GET_PROP(queryOptions, useCache, Boolean);
 
   byte query_buffer[0x4000];
   auto length = query_field_card(duel, player, location, queryFlags, query_buffer, useCache);
@@ -278,12 +281,12 @@ NAN_METHOD(newCard)
 
   const auto new_card = arg1.As<v8::Object>();
 
-  GET_PROP_FROM(new_card, code,     Int32, uint32);
-  GET_PROP_FROM(new_card, owner,    Int32, uint8);
-  GET_PROP_FROM(new_card, player,   Int32, uint8);
-  GET_PROP_FROM(new_card, location, Int32, uint8);
-  GET_PROP_FROM(new_card, sequence, Int32, uint8);
-  GET_PROP_FROM(new_card, position, Int32, uint8);
+  GET_INTEGER_PROP(new_card, code,     uint32);
+  GET_INTEGER_PROP(new_card, owner,    uint8);
+  GET_INTEGER_PROP(new_card, player,   uint8);
+  GET_INTEGER_PROP(new_card, location, uint8);
+  GET_INTEGER_PROP(new_card, sequence, uint8);
+  GET_INTEGER_PROP(new_card, position, uint8);
 
   ::new_card(duel, code, owner, player, location, sequence, position);
 }
